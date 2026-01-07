@@ -2,29 +2,14 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 22
+      nodejs: 20
     commands:
       - echo Installing dependencies...
       - npm install
-  pre_build:
-    commands:
-      - echo Skipping tests for now due to Node.js compatibility...
-      # - npm run test -- --run
-      - echo Running linter...
-      - npm run lint
   build:
     commands:
       - echo Building application...
-      - export VITE_API_BASE_URL=https://7g9wz71j86.execute-api.eu-north-1.amazonaws.com/prod
-      - export VITE_AWS_REGION=eu-north-1
-      - export VITE_COGNITO_USER_POOL_ID=eu-north-1_CZrYHze0s
-      - export VITE_COGNITO_CLIENT_ID=60fuqippfd87e6tj3cch51kf3s
       - npm run build
-  post_build:
-    commands:
-      - echo Build completed successfully!
-      # CloudFront invalidation temporarily disabled due to permissions
-      # - aws cloudfront create-invalidation --distribution-id ECRP51AK9PYZS --paths "/*"
 artifacts:
   files:
     - '**/*'

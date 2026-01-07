@@ -1,326 +1,370 @@
-# Library Recommendation System - Architecture
+# 🏗 System Architecture
 
-## System Overview
+## Overview
 
-The Library Recommendation System is built using AWS serverless architecture, providing a scalable, cost-effective solution for book recommendations and library management.
+The Library Recommendation System follows a modern serverless architecture pattern using AWS cloud services. The system is designed for scalability, cost-effectiveness, and high availability.
 
-## Architecture Diagram
+## High-Level Architecture
 
 ```mermaid
 graph TB
-    %% User Layer
-    User[👤 User] --> CF[☁️ CloudFront CDN]
+    subgraph "Client Layer"
+        A[React Frontend<br/>TypeScript + Tailwind]
+        B[Mobile Browser]
+        C[Desktop Browser]
+    end
 
-    %% Frontend Layer
-    CF --> S3[📦 S3 Static Website<br/>React + TypeScript]
+    subgraph "CDN & Static Hosting"
+        D[CloudFront CDN]
+        E[S3 Static Website]
+    end
 
-    %% API Layer
-    S3 --> APIG[🚪 API Gateway<br/>REST API Endpoints]
+    subgraph "API Layer"
+        F[API Gateway<br/>REST API]
+        G[Cognito Authorizer]
+    end
 
-    %% Authentication
-    S3 --> Cognito[🔐 Cognito User Pool<br/>Authentication & Authorization]
-    APIG --> Cognito
+    subgraph "Compute Layer"
+        H[Lambda Functions]
+        H1[Books API<br/>CRUD Operations]
+        H2[Reading Lists API<br/>User Management]
+        H3[Recommendations API<br/>AI Integration]
+        H4[Auth Handler<br/>User Management]
+    end
 
-    %% Lambda Functions
-    APIG --> L1[⚡ Get Books Lambda]
-    APIG --> L2[⚡ Get Book Lambda]
-    APIG --> L3[⚡ Create Book Lambda]
-    APIG --> L4[⚡ Reading Lists Lambda]
-    APIG --> L5[⚡ AI Recommendations Lambda]
+    subgraph "Data Layer"
+        I[DynamoDB<br/>Books Table]
+        J[DynamoDB<br/>ReadingLists Table]
+    end
 
-    %% Database Layer
-    L1 --> DDB1[🗄️ Books Table<br/>DynamoDB]
-    L2 --> DDB1
-    L3 --> DDB1
-    L4 --> DDB2[🗄️ Reading Lists Table<br/>DynamoDB]
+    subgraph "AI/ML Layer"
+        K[Amazon Bedrock<br/>Claude 3 Haiku]
+    end
 
-    %% AI Layer
-    L5 --> Bedrock[🤖 Amazon Bedrock<br/>Claude 3 Haiku Model]
+    subgraph "Authentication"
+        L[Cognito User Pool<br/>JWT Tokens]
+    end
 
-    %% Styling
-    classDef frontend fill:#e1f5fe
-    classDef api fill:#f3e5f5
-    classDef lambda fill:#fff3e0
-    classDef database fill:#e8f5e8
-    classDef ai fill:#fce4ec
-    classDef auth fill:#fff8e1
+    subgraph "Monitoring & Logging"
+        M[CloudWatch Logs]
+        N[CloudWatch Metrics]
+    end
 
-    class User,CF,S3 frontend
-    class APIG api
-    class L1,L2,L3,L4,L5 lambda
-    class DDB1,DDB2 database
-    class Bedrock ai
-    class Cognito auth
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    A --> F
+    F --> G
+    G --> L
+    F --> H
+    H --> H1
+    H --> H2
+    H --> H3
+    H --> H4
+    H1 --> I
+    H2 --> J
+    H3 --> K
+    H4 --> L
+    H --> M
+    H --> N
+
+    style A fill:#61dafb,color:#000
+    style D fill:#ff9900,color:#fff
+    style F fill:#ff9900,color:#fff
+    style H fill:#ff9900,color:#fff
+    style I fill:#3f48cc,color:#fff
+    style K fill:#ff6b6b,color:#fff
+    style L fill:#ff9900,color:#fff
 ```
 
 ## Component Details
 
-### 1. Frontend Layer (Blue)
+### Frontend Layer
 
-#### CloudFront CDN
+**Technology Stack:**
 
-- **Purpose**: Global content delivery network
-- **Benefits**: Fast loading times, HTTPS termination, caching
-- **Configuration**: Points to S3 origin, custom error pages for SPA routing
+- React 19 with TypeScript 5.9
+- Vite for build tooling
+- Tailwind CSS for styling
+- React Router v7 for navigation
 
-#### S3 Static Website
+**Key Features:**
 
-- **Purpose**: Hosts the React application
-- **Technology**: React 19 + TypeScript + Vite
-- **Features**: Static website hosting, public read access
-- **Build Process**: `npm run build` creates optimized production bundle
+- Server-side rendering ready
+- Mobile-first responsive design
+- Progressive Web App capabilities
+- Optimized bundle splitting
 
-### 2. API Layer (Purple)
+### CDN & Static Hosting
 
-#### API Gateway
+**CloudFront Distribution:**
 
-- **Purpose**: RESTful API endpoints with CORS
-- **Endpoints**:
-  - `GET /getBooks` - Retrieve all books
-  - `GET /getBooks/{id}` - Get single book
-  - `POST /books` - Create new book (admin only)
-  - `GET /reading-lists` - Get user's reading lists
-  - `POST /reading-lists` - Create reading list
-  - `PUT /reading-lists/{id}` - Update reading list
-  - `DELETE /reading-lists/{id}` - Delete reading list
-  - `POST /recommendations` - Get AI recommendations
+- Global edge locations for low latency
+- HTTPS redirect and security headers
+- Gzip compression enabled
+- Custom error pages for SPA routing
 
-### 3. Compute Layer (Orange)
+**S3 Static Website:**
 
-#### Lambda Functions
+- Cost-effective static hosting
+- Versioned deployments
+- Public read access with bucket policies
 
-All functions use Node.js 20.x runtime with ARM64 architecture for cost optimization.
+### API Gateway
 
-##### Get Books Lambda
+**Configuration:**
 
-- **Purpose**: Retrieve all books from DynamoDB
-- **Memory**: 256 MB
-- **Timeout**: 30 seconds
-- **Permissions**: DynamoDB:Scan on Books table
+- REST API with resource-based routing
+- CORS enabled for web clients
+- Request/response transformation
+- API throttling and rate limiting
 
-##### Get Book Lambda
-
-- **Purpose**: Retrieve single book by ID
-- **Memory**: 256 MB
-- **Timeout**: 30 seconds
-- **Permissions**: DynamoDB:GetItem on Books table
-
-##### Create Book Lambda
-
-- **Purpose**: Add new books to catalog (admin only)
-- **Memory**: 256 MB
-- **Timeout**: 30 seconds
-- **Permissions**: DynamoDB:PutItem on Books table
-- **Authorization**: Requires admin role in Cognito
-
-##### Reading Lists Lambda
-
-- **Purpose**: CRUD operations for user reading lists
-- **Memory**: 256 MB
-- **Timeout**: 30 seconds
-- **Permissions**: DynamoDB:Query, PutItem, UpdateItem, DeleteItem on ReadingLists table
-- **Authorization**: Requires valid Cognito JWT token
-
-##### AI Recommendations Lambda
-
-- **Purpose**: Generate personalized book recommendations
-- **Memory**: 512 MB (higher for AI processing)
-- **Timeout**: 60 seconds
-- **Permissions**: Bedrock:InvokeModel
-- **Model**: Claude 3 Haiku (cost-effective, fast responses)
-
-### 4. Database Layer (Green)
-
-#### Books Table (DynamoDB)
-
-- **Partition Key**: `id` (String)
-- **Attributes**:
-  - `title` (String)
-  - `author` (String)
-  - `genre` (String)
-  - `description` (String)
-  - `coverImage` (String)
-  - `rating` (Number)
-  - `publishedYear` (Number)
-  - `isbn` (String)
-
-#### Reading Lists Table (DynamoDB)
-
-- **Partition Key**: `userId` (String)
-- **Sort Key**: `id` (String)
-- **Attributes**:
-  - `name` (String)
-  - `description` (String)
-  - `bookIds` (List of Strings)
-  - `createdAt` (String)
-  - `updatedAt` (String)
-
-### 5. Authentication Layer (Yellow)
-
-#### Cognito User Pool
-
-- **Purpose**: User registration, authentication, and authorization
-- **Features**:
-  - Email-based registration
-  - Password policies
-  - JWT token generation
-  - User roles (user, admin)
-- **Integration**: API Gateway uses Cognito authorizer for protected endpoints
-
-### 6. AI Layer (Pink)
-
-#### Amazon Bedrock
-
-- **Model**: Claude 3.7 Haiku
-- **Purpose**: Generate contextual book recommendations
-- **Input**: User query describing preferences
-- **Output**: List of recommended books with reasons
-- **Cost**: ~$0.01 per recommendation (very cost-effective)
-
-## Data Flow
-
-### 1. User Authentication Flow
+**Endpoints:**
 
 ```
-User → CloudFront → S3 → Cognito User Pool → JWT Token → Local Storage
+GET    /getBooks           - Retrieve all books
+GET    /getBooks/{id}      - Get specific book
+POST   /books              - Create book (Admin)
+PUT    /books/{id}         - Update book (Admin)
+DELETE /books/{id}         - Delete book (Admin)
+GET    /reading-lists      - Get user's lists
+POST   /reading-lists      - Create reading list
+PUT    /reading-lists/{id} - Update reading list
+DELETE /reading-lists/{id} - Delete reading list
+POST   /recommendations    - Get AI recommendations
 ```
 
-### 2. Book Browsing Flow
+### Lambda Functions
+
+**Books API Lambda:**
+
+- Runtime: Node.js 20.x
+- Memory: 512 MB
+- Timeout: 30 seconds
+- Permissions: DynamoDB read/write
+
+**Reading Lists API Lambda:**
+
+- Runtime: Node.js 20.x
+- Memory: 256 MB
+- Timeout: 15 seconds
+- Permissions: DynamoDB read/write
+
+**Recommendations API Lambda:**
+
+- Runtime: Node.js 20.x
+- Memory: 1024 MB
+- Timeout: 30 seconds
+- Permissions: Bedrock invoke, DynamoDB read
+
+**Performance Optimizations:**
+
+- Connection pooling for DynamoDB
+- Efficient error handling
+- Structured logging for monitoring
+- Cold start optimization
+
+### Data Layer
+
+**Books Table (DynamoDB):**
 
 ```
-User → CloudFront → S3 → API Gateway → Get Books Lambda → Books DynamoDB → Response
+Partition Key: id (String)
+Attributes:
+- title (String)
+- author (String)
+- genre (String)
+- description (String)
+- coverImage (String)
+- rating (Number)
+- publishedYear (Number)
+- isbn (String)
 ```
 
-### 3. Reading List Management Flow
+**ReadingLists Table (DynamoDB):**
 
 ```
-User → CloudFront → S3 → API Gateway → Cognito Authorizer → Reading Lists Lambda → ReadingLists DynamoDB
+Partition Key: userId (String)
+Sort Key: id (String)
+Attributes:
+- name (String)
+- description (String)
+- bookIds (String Set)
+- createdAt (String)
+- updatedAt (String)
+
+Global Secondary Index:
+- id-index (Partition Key: id)
 ```
 
-### 4. AI Recommendations Flow
+### AI/ML Integration
 
+**Amazon Bedrock Configuration:**
+
+- Model: Claude 3 Haiku (anthropic.claude-3-haiku-20240307-v1:0)
+- Region: us-east-1
+- Max Tokens: 1000 (cost optimized)
+- Temperature: 0.7 for balanced creativity
+
+**Cost Optimization:**
+
+- Claude 3 Haiku: ~$0.25 per 1M input tokens
+- 5x cheaper than Claude 3.7 Sonnet
+- Optimized prompts to minimize token usage
+- Request caching for similar queries
+
+### Authentication & Authorization
+
+**Cognito User Pool:**
+
+- Email-based authentication
+- Password policies enforced
+- Email verification required
+- JWT token-based sessions
+
+**Authorization Flow:**
+
+1. User authenticates with Cognito
+2. Receives JWT tokens (ID, Access, Refresh)
+3. Frontend includes ID token in API requests
+4. API Gateway validates token with Cognito
+5. Lambda receives user context from validated token
+
+### Monitoring & Observability
+
+**CloudWatch Integration:**
+
+- Structured JSON logging
+- Performance metrics tracking
+- Error rate monitoring
+- Custom dashboards
+
+**Key Metrics:**
+
+- API response times
+- Lambda cold starts
+- DynamoDB read/write capacity
+- Bedrock API latency
+- Error rates by endpoint
+
+## Security Architecture
+
+### Network Security
+
+- HTTPS everywhere (TLS 1.2+)
+- CloudFront security headers
+- API Gateway throttling
+- CORS properly configured
+
+### Authentication Security
+
+- JWT tokens with expiration
+- Secure token storage
+- Password complexity requirements
+- Email verification mandatory
+
+### Data Security
+
+- DynamoDB encryption at rest
+- IAM least privilege access
+- No sensitive data in logs
+- Input validation and sanitization
+
+### API Security
+
+- Rate limiting per user
+- Request size limits
+- SQL injection prevention
+- XSS protection headers
+
+## Scalability & Performance
+
+### Auto Scaling
+
+- Lambda: Automatic concurrency scaling
+- DynamoDB: On-demand billing mode
+- API Gateway: Built-in scaling
+- CloudFront: Global edge network
+
+### Performance Optimizations
+
+- Frontend code splitting
+- Image optimization
+- CDN caching strategies
+- Database query optimization
+
+### Cost Optimization
+
+- Serverless pay-per-use model
+- DynamoDB on-demand pricing
+- S3 lifecycle policies
+- CloudFront edge caching
+
+## Deployment Architecture
+
+### CI/CD Pipeline
+
+```mermaid
+graph LR
+    A[GitHub Repository] --> B[CodePipeline]
+    B --> C[CodeBuild]
+    C --> D[Build & Test]
+    D --> E[Deploy to S3]
+    E --> F[CloudFront Invalidation]
+    F --> G[Production Live]
+
+    style A fill:#24292e,color:#fff
+    style B fill:#ff9900,color:#fff
+    style C fill:#ff9900,color:#fff
+    style G fill:#28a745,color:#fff
 ```
-User → CloudFront → S3 → API Gateway → Cognito Authorizer → AI Lambda → Bedrock → Claude 3 Haiku → Response
-```
 
-## Security Considerations
+### Environment Management
 
-### 1. Authentication & Authorization
+- **Development**: Local development with mock data
+- **Staging**: AWS environment with test data
+- **Production**: Full AWS deployment with real data
 
-- All sensitive endpoints protected by Cognito JWT tokens
-- Admin-only endpoints check user role in token claims
-- API Gateway validates tokens before reaching Lambda functions
+### Infrastructure as Code
 
-### 2. Data Protection
+- AWS CDK for infrastructure management
+- Version-controlled infrastructure
+- Automated deployments
+- Environment-specific configurations
 
-- DynamoDB tables use AWS managed encryption
-- S3 bucket configured with appropriate access policies
-- CloudFront enforces HTTPS
+## Disaster Recovery
 
-### 3. Network Security
+### Backup Strategy
 
-- API Gateway configured with CORS for frontend domain only
-- Lambda functions run in AWS managed VPC
-- No direct database access from frontend
+- DynamoDB point-in-time recovery
+- S3 versioning enabled
+- CloudFormation stack backups
+- Code repository redundancy
 
-## Cost Optimization
+### Recovery Procedures
 
-### 1. Serverless Architecture
+- RTO (Recovery Time Objective): < 1 hour
+- RPO (Recovery Point Objective): < 15 minutes
+- Automated failover procedures
+- Health check monitoring
 
-- Pay only for actual usage (requests, compute time)
-- No idle server costs
-- Automatic scaling based on demand
+## Future Enhancements
 
-### 2. ARM64 Lambda Functions
+### Planned Features
 
-- 20% better price-performance compared to x86
-- Lower memory allocation where possible
+- Real-time notifications
+- Advanced search with Elasticsearch
+- Machine learning personalization
+- Mobile app development
 
-### 3. DynamoDB On-Demand
+### Scalability Improvements
 
-- Pay per request model
-- No capacity planning required
-- Automatic scaling
+- Multi-region deployment
+- Database sharding strategies
+- Microservices architecture
+- Event-driven architecture
 
-### 4. CloudFront Caching
+---
 
-- Reduces origin requests
-- Faster response times
-- Lower bandwidth costs
-
-## Monitoring & Observability
-
-### 1. CloudWatch Logs
-
-- All Lambda functions log to CloudWatch
-- API Gateway access logs enabled
-- Error tracking and debugging
-
-### 2. CloudWatch Metrics
-
-- Lambda duration, errors, invocations
-- API Gateway request count, latency, errors
-- DynamoDB read/write capacity utilization
-
-### 3. X-Ray Tracing (Optional)
-
-- End-to-end request tracing
-- Performance bottleneck identification
-- Service map visualization
-
-## Deployment Strategy
-
-### 1. Infrastructure as Code
-
-- AWS CDK for infrastructure deployment
-- Version controlled infrastructure changes
-- Consistent environments (dev, staging, prod)
-
-### 2. CI/CD Pipeline
-
-- GitHub Actions for automated deployment
-- Separate pipelines for frontend and backend
-- Automated testing before deployment
-
-### 3. Blue-Green Deployment
-
-- Zero-downtime deployments
-- Easy rollback capability
-- Lambda alias-based traffic shifting
-
-## Scalability Considerations
-
-### 1. Horizontal Scaling
-
-- Lambda functions scale automatically
-- DynamoDB scales based on demand
-- CloudFront global edge locations
-
-### 2. Performance Optimization
-
-- DynamoDB single-table design for efficiency
-- Lambda cold start optimization
-- CloudFront caching strategy
-
-### 3. Future Enhancements
-
-- ElastiCache for frequently accessed data
-- DynamoDB Global Tables for multi-region
-- API Gateway caching for read-heavy endpoints
-
-## Technology Stack Summary
-
-| Layer      | Technology                   | Purpose                  |
-| ---------- | ---------------------------- | ------------------------ |
-| Frontend   | React 19 + TypeScript + Vite | User interface           |
-| CDN        | CloudFront                   | Content delivery         |
-| Storage    | S3                           | Static website hosting   |
-| API        | API Gateway                  | RESTful endpoints        |
-| Compute    | Lambda (Node.js 20.x)        | Business logic           |
-| Database   | DynamoDB                     | NoSQL data storage       |
-| Auth       | Cognito                      | User management          |
-| AI         | Bedrock (Claude 3 Haiku)     | Book recommendations     |
-| Monitoring | CloudWatch                   | Logging and metrics      |
-| Deployment | CDK + GitHub Actions         | Infrastructure and CI/CD |
-
-This architecture provides a robust, scalable, and cost-effective solution for the Library Recommendation System while maintaining high availability and security standards.
+_This architecture supports the current application requirements while providing a foundation for future growth and scalability._

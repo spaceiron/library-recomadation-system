@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 
-const client = new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'eu-north-1' });
+const client = new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -53,38 +53,48 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    console.log(`Processing recommendation request for user ${userId}: "${userQuery}"`);
+    // Add query length validation for cost optimization
+    if (userQuery.length > 1000) {
+      return {
+        statusCode: 400,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          error: 'Query too long',
+          details: 'Query must be 1000 characters or less',
+          maxLength: 1000,
+        }),
+      };
+    }
 
-    const prompt = `You are a helpful librarian AI. A user is looking for book recommendations.
+    console.log(
+      `Processing recommendation request for user ${userId}: "${userQuery.substring(0, 100)}${userQuery.length > 100 ? '...' : ''}"`
+    );
 
-User query: "${userQuery}"
+    const startTime = Date.now();
 
-Based on this query, recommend 3 books with:
-1. Book title and author
-2. Brief reason why it matches their interest (max 50 words)
-3. Confidence score (0-1)
+    const prompt = `You are a librarian AI. Recommend 3 books for: "${userQuery}"
 
-Respond in JSON format:
+Format as JSON:
 {
   "recommendations": [
     {
       "title": "Book Title",
-      "author": "Author Name", 
-      "reason": "Why this book matches their interest",
+      "author": "Author Name",
+      "reason": "Brief match reason (max 40 words)",
       "confidence": 0.95
     }
   ]
 }
 
-Make sure the response is valid JSON and includes exactly 3 recommendations.`;
+Ensure exactly 3 recommendations with valid JSON.`;
 
     const command = new InvokeModelCommand({
-      modelId: 'eu.anthropic.claude-3-7-sonnet-20250219-v1:0', // Claude 3.7 Sonnet Inference Profile
+      modelId: 'anthropic.claude-3-haiku-20240307-v1:0', // Claude 3 Haiku for cost optimization
       contentType: 'application/json',
       accept: 'application/json',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 1500,
+        max_tokens: 1000, // Reduced from 1500 for cost optimization
         messages: [
           {
             role: 'user',
@@ -94,7 +104,7 @@ Make sure the response is valid JSON and includes exactly 3 recommendations.`;
       }),
     });
 
-    console.log('Calling Bedrock with Claude 3.7 Sonnet...');
+    console.log('Calling Bedrock with Claude 3 Haiku...');
     const response = await client.send(command);
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
     const aiResponse = responseBody.content[0].text;
@@ -142,15 +152,47 @@ Make sure the response is valid JSON and includes exactly 3 recommendations.`;
       };
     }
 
-    // Validate recommendations structure
+    // Validate recommendations structure and content
     if (!recommendations.recommendations || !Array.isArray(recommendations.recommendations)) {
       throw new Error('Invalid recommendations format from AI');
+    }
+
+    // Validate each recommendation has required fields and proper types
+    for (let i = 0; i < recommendations.recommendations.length; i++) {
+      const rec = recommendations.recommendations[i];
+      if (!rec.title || typeof rec.title !== 'string') {
+        throw new Error(`Recommendation ${i + 1} missing or invalid title`);
+      }
+      if (!rec.author || typeof rec.author !== 'string') {
+        throw new Error(`Recommendation ${i + 1} missing or invalid author`);
+      }
+      if (!rec.reason || typeof rec.reason !== 'string') {
+        throw new Error(`Recommendation ${i + 1} missing or invalid reason`);
+      }
+      if (typeof rec.confidence !== 'number' || rec.confidence < 0 || rec.confidence > 1) {
+        // Clamp confidence to valid range
+        rec.confidence = Math.max(0, Math.min(1, rec.confidence || 0.5));
+      }
     }
 
     // Ensure we have exactly 3 recommendations
     recommendations.recommendations = recommendations.recommendations.slice(0, 3);
 
     console.log(`Successfully generated ${recommendations.recommendations.length} recommendations`);
+
+    // Log successful request with performance metrics
+    const processingTime = Date.now() - startTime;
+    console.log(
+      JSON.stringify({
+        level: 'INFO',
+        message: 'Recommendation request successful',
+        userId,
+        queryLength: userQuery.length,
+        recommendationCount: recommendations.recommendations.length,
+        processingTime,
+        modelUsed: 'claude-3-haiku',
+      })
+    );
 
     return {
       statusCode: 200,
@@ -159,6 +201,50 @@ Make sure the response is valid JSON and includes exactly 3 recommendations.`;
     };
   } catch (error) {
     console.error('Error getting recommendations:', error);
+
+    // Enhanced error logging
+    console.error(
+      JSON.stringify({
+        level: 'ERROR',
+        message: 'Recommendation request failed',
+        userId: getUserIdFromEvent(event),
+        query: event.body ? JSON.parse(event.body).query?.substring(0, 100) : 'unknown',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      })
+    );
+
+    // Return appropriate error response based on error type
+    if (error instanceof Error) {
+      if (
+        error.message.includes('AccessDenied') ||
+        error.message.includes('UnauthorizedOperation')
+      ) {
+        return {
+          statusCode: 403,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            error: 'Model access denied',
+            details: 'Please ensure Bedrock model access is enabled for Claude 3 Haiku',
+          }),
+        };
+      }
+
+      if (
+        error.message.includes('ThrottlingException') ||
+        error.message.includes('TooManyRequestsException')
+      ) {
+        return {
+          statusCode: 429,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            error: 'Rate limit exceeded',
+            details: 'Please try again in a few moments',
+            retryAfter: 60,
+          }),
+        };
+      }
+    }
 
     return {
       statusCode: 500,
