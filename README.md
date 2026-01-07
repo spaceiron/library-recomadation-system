@@ -1,6 +1,6 @@
 # 🤖 AI-Powered Library Recommendation System
 
-[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-Visit_Site-red?style=for-the-badge)](https://zj5w3d20sj.execute-api.us-east-1.amazonaws.com/prod)
+[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-Visit_Site-red?style=for-the-badge)](https://kuetuephane-oeneri.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-spaceiron-black?style=for-the-badge&logo=github)](https://github.com/spaceiron/library-recomadation-system)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-orange?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/)
@@ -9,7 +9,7 @@
 
 ## 🚀 Live Demo
 
-**🌐 [Visit Live Application](https://zj5w3d20sj.execute-api.us-east-1.amazonaws.com/prod)**
+**🌐 [Visit Live Application](https://kuetuephane-oeneri.vercel.app)**
 
 ## 📋 Table of Contents
 

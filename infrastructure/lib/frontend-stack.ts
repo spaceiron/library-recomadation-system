@@ -15,7 +15,7 @@ export class FrontendStack extends cdk.Stack {
 
     // S3 Bucket for static website hosting
     this.bucket = new s3.Bucket(this, 'LibraryAppFrontendBucket', {
-      bucketName: 'library-app-frontend-ufuktan-alkan',
+      bucketName: `library-app-frontend-spaceiron-${Math.random().toString(36).substring(7)}`,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
       publicReadAccess: false, // CloudFront will handle access

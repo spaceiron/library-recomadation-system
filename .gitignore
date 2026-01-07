@@ -53,3 +53,4 @@ infrastructure/*.json
 # Misc
 *.orig
 .eslintcache
+.vercel
