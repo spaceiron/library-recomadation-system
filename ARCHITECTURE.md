@@ -322,16 +322,18 @@ graph LR
 
 ### Environment Management
 
-- **Development**: Local development with mock data
+- **Development**: Local development with mock data (http://localhost:5173)
 - **Staging**: AWS environment with test data
-- **Production**: Full AWS deployment with real data
+- **Production**: Full AWS deployment with real data (https://dvzgwma5xw8tz.cloudfront.net)
 
 ### Infrastructure as Code
 
 - AWS CDK for infrastructure management
 - Version-controlled infrastructure
-- Automated deployments
+- Automated deployments with CodePipeline
 - Environment-specific configurations
+- S3 bucket: `library-app-frontend-uzaydemir`
+- CloudFront Distribution ID: `E26S2ES1F8FJ0`
 
 ## Disaster Recovery
 

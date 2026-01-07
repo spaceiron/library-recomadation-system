@@ -1,6 +1,6 @@
 # 🤖 AI-Powered Library Recommendation System
 
-[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-Visit_Site-red?style=for-the-badge)](https://kuetuephane-oeneri.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-Visit_Site-red?style=for-the-badge)](https://dvzgwma5xw8tz.cloudfront.net)
 [![GitHub](https://img.shields.io/badge/GitHub-spaceiron-black?style=for-the-badge&logo=github)](https://github.com/spaceiron/library-recomadation-system)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-orange?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/)
@@ -9,7 +9,7 @@
 
 ## 🚀 Live Demo
 
-**🌐 [Visit Live Application](http://library-app-frontend-uzaydemir.s3-website-us-east-1.amazonaws.com)**
+**🌐 [Visit Live Application](https://dvzgwma5xw8tz.cloudfront.net)**
 
 > **Status**: ✅ **Production Ready** - Full AWS serverless deployment with Claude 3 Haiku AI recommendations
 
@@ -286,7 +286,19 @@ src/tests/
 - ✅ **AI Recommendations** - Complete (Claude 3 Haiku + Bedrock)
 - ✅ **Testing** - Complete (85%+ coverage)
 - ✅ **Production Deployment** - Complete (S3 + CloudFront)
-- ✅ **CI/CD Pipeline** - Complete (CodePipeline + CodeBuild)
+- ✅ **Documentation** - Complete (README + Architecture + Demo guide)
+- 🔄 **CI/CD Pipeline** - Ready (buildspec.yml configured)
+
+## 🌐 Live Deployment
+
+**Production URL:** [https://dvzgwma5xw8tz.cloudfront.net](https://dvzgwma5xw8tz.cloudfront.net)
+
+**Infrastructure:**
+
+- **S3 Bucket:** `library-app-frontend-uzaydemir`
+- **CloudFront Distribution:** `E26S2ES1F8FJ0`
+- **API Gateway:** `https://zj5w3d20sj.execute-api.us-east-1.amazonaws.com/prod`
+- **Region:** `us-east-1`
 
 ## 🤝 Contributing
 
