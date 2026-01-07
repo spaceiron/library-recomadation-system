@@ -1,7 +1,7 @@
 # 🤖 AI-Powered Library Recommendation System
 
 [![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-Visit_Site-red?style=for-the-badge)](https://zj5w3d20sj.execute-api.us-east-1.amazonaws.com/prod)
-[![GitHub](https://img.shields.io/badge/GitHub-spaceiron-black?style=for-the-badge&logo=github)](https://github.com/spaceiron/library-recommendation-system)
+[![GitHub](https://img.shields.io/badge/GitHub-spaceiron-black?style=for-the-badge&logo=github)](https://github.com/spaceiron/library-recomadation-system)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-orange?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/)
 
@@ -133,8 +133,8 @@ graph TB
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/spaceiron/library-recommendation-system.git
-   cd library-recommendation-system
+   git clone https://github.com/spaceiron/library-recomadation-system.git
+   cd library-recomadation-system
    ```
 
 2. **Install dependencies**

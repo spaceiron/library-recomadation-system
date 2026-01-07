@@ -9,11 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/spaceiron/library-recommendation-system.git"
+    "url": "https://github.com/spaceiron/library-recomadation-system.git"
   },
-  "homepage": "https://github.com/spaceiron/library-recommendation-system#readme",
+  "homepage": "https://github.com/spaceiron/library-recomadation-system#readme",
   "bugs": {
-    "url": "https://github.com/spaceiron/library-recommendation-system/issues"
+    "url": "https://github.com/spaceiron/library-recomadation-system/issues"
   },
   "keywords": [
     "react",
