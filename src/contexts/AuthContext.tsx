@@ -50,7 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         id: cognitoUser.userId,
         email: cognitoUser.signInDetails?.loginId || '',
         name: cognitoUser.username,
-        role: 'user',
+        role: 'admin', // Geçici olarak herkesi admin yap
         createdAt: new Date().toISOString(),
       });
     } catch (error) {
