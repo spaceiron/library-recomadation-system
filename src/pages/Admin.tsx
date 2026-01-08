@@ -3,7 +3,7 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { getBooks, createBook, deleteBook } from '@/services/api';
+import { getBooks, createBook, deleteBook, updateBook } from '@/services/api';
 import { Book } from '@/types';
 import { handleApiError, showSuccess } from '@/utils/errorHandling';
 
@@ -14,6 +14,8 @@ export function Admin() {
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingBookId, setEditingBookId] = useState<string | null>(null);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -48,17 +50,42 @@ export function Admin() {
     }
 
     try {
-      const created = await createBook(newBook);
-      setBooks([...books, created]);
+      if (isEditMode && editingBookId) {
+        // Update existing book
+        const updated = await updateBook(editingBookId, newBook);
+        setBooks(books.map((book) => (book.id === editingBookId ? updated : book)));
+        showSuccess('Book updated successfully!');
+      } else {
+        // Create new book
+        const created = await createBook(newBook);
+        setBooks([...books, created]);
+        showSuccess('Book added successfully!');
+      }
+
       setIsModalOpen(false);
       resetForm();
-      showSuccess('Book added successfully!');
       // Reload books to get the latest data
       await loadBooks();
     } catch (error) {
-      console.error('Create book error:', error);
+      console.error('Create/Update book error:', error);
       handleApiError(error);
     }
+  };
+
+  const handleEditBook = (book: Book) => {
+    setIsEditMode(true);
+    setEditingBookId(book.id);
+    setNewBook({
+      title: book.title,
+      author: book.author,
+      genre: book.genre,
+      description: book.description,
+      coverImage: book.coverImage,
+      rating: book.rating,
+      publishedYear: book.publishedYear,
+      isbn: book.isbn,
+    });
+    setIsModalOpen(true);
   };
 
   const handleDeleteBook = async (id: string) => {
@@ -77,6 +104,8 @@ export function Admin() {
   };
 
   const resetForm = () => {
+    setIsEditMode(false);
+    setEditingBookId(null);
     setNewBook({
       title: '',
       author: '',
@@ -127,7 +156,13 @@ export function Admin() {
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-slate-900">Manage Books</h2>
-            <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                resetForm();
+                setIsModalOpen(true);
+              }}
+            >
               Add New Book
             </Button>
           </div>
@@ -152,7 +187,7 @@ export function Admin() {
                     <td className="py-3 px-4">{book.rating}</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
-                        <Button variant="secondary" size="sm">
+                        <Button variant="secondary" size="sm" onClick={() => handleEditBook(book)}>
                           Edit
                         </Button>
                         <Button
@@ -171,8 +206,15 @@ export function Admin() {
           </div>
         </div>
 
-        {/* Add Book Modal */}
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Book">
+        {/* Add/Edit Book Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            resetForm();
+          }}
+          title={isEditMode ? 'Edit Book' : 'Add New Book'}
+        >
           <div className="max-h-[60vh] overflow-y-auto">
             <Input
               label="Title"
@@ -240,9 +282,16 @@ export function Admin() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="primary" onClick={handleCreateBook} className="flex-1">
-                Add Book
+                {isEditMode ? 'Update Book' : 'Add Book'}
               </Button>
-              <Button variant="secondary" onClick={() => setIsModalOpen(false)} className="flex-1">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetForm();
+                }}
+                className="flex-1"
+              >
                 Cancel
               </Button>
             </div>

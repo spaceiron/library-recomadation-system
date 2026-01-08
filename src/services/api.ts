@@ -1,5 +1,4 @@
 import { Book, ReadingList, Review, Recommendation } from '@/types';
-import { mockBooks } from './mockData';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 /**
@@ -175,18 +174,20 @@ export async function createBook(book: Omit<Book, 'id'>): Promise<Book> {
  * TODO: Replace with PUT /books/:id API call
  */
 export async function updateBook(id: string, book: Partial<Book>): Promise<Book> {
-  // Mock implementation
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const existingBook = mockBooks.find((b) => b.id === id);
-      const updatedBook: Book = {
-        ...existingBook!,
-        ...book,
-        id,
-      };
-      resolve(updatedBook);
-    }, 500);
-  });
+  if (API_BASE_URL) {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/books/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(book),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update book');
+    }
+    return response.json();
+  }
+
+  throw new Error('API BASE URL is not configured');
 }
 
 /**
@@ -347,13 +348,17 @@ export async function updateReadingList(
 ): Promise<ReadingList> {
   if (API_BASE_URL) {
     const headers = await getAuthHeaders();
+    const updateData = { ...list, userId: list.userId || '1' };
+
     const response = await fetch(`${API_BASE_URL}/reading-lists/${id}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify({ ...list, userId: list.userId || '1' }),
+      body: JSON.stringify(updateData),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Update failed:', errorText);
       throw new Error('Failed to update a reading list');
     }
     return response.json();

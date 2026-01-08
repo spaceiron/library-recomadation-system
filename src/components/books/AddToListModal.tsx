@@ -54,15 +54,18 @@ export function AddToListModal({ isOpen, onClose, book }: AddToListModalProps) {
     setIsAdding(true);
     try {
       const updatedBookIds = [...list.bookIds, book.id];
-      await updateReadingList(list.id, {
+      const updateData = {
         bookIds: updatedBookIds,
         updatedAt: new Date().toISOString(),
-        userId: list.userId, // Add userId to the update
-      });
+        userId: list.userId,
+      };
+
+      await updateReadingList(list.id, updateData);
 
       showSuccess(`"${book.title}" added to "${list.name}"!`);
       onClose();
     } catch (error) {
+      console.error('Add to list error:', error);
       handleApiError(error);
     } finally {
       setIsAdding(false);
@@ -79,7 +82,8 @@ export function AddToListModal({ isOpen, onClose, book }: AddToListModalProps) {
             alt={book.title}
             className="w-12 h-16 object-cover rounded"
             onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/48x64?text=No+Cover';
+              e.currentTarget.src =
+                'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA0OCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAzMkMyNi4yMDkxIDMyIDI4IDMwLjIwOTEgMjggMjhDMjggMjUuNzkwOSAyNi4yMDkxIDI0IDI0IDI0QzIxLjc5MDkgMjQgMjAgMjUuNzkwOSAyMCAyOEMyMCAzMC4yMDkxIDIxLjc5MDkgMzIgMjQgMzJaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xNiA0MEgzMlY0NEgxNlY0MFoiIGZpbGw9IiM5QjlCQTAiLz4KPC9zdmc+';
             }}
           />
           <div>
