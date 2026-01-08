@@ -43,18 +43,20 @@ export function Admin() {
 
   const handleCreateBook = async () => {
     if (!newBook.title || !newBook.author) {
-      alert('Please fill in required fields');
+      alert('Please fill in required fields (Title and Author)');
       return;
     }
 
     try {
-      // TODO: Replace with Lambda API call
       const created = await createBook(newBook);
       setBooks([...books, created]);
       setIsModalOpen(false);
       resetForm();
       showSuccess('Book added successfully!');
+      // Reload books to get the latest data
+      await loadBooks();
     } catch (error) {
+      console.error('Create book error:', error);
       handleApiError(error);
     }
   };

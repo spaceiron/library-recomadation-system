@@ -57,6 +57,7 @@ export function AddToListModal({ isOpen, onClose, book }: AddToListModalProps) {
       await updateReadingList(list.id, {
         bookIds: updatedBookIds,
         updatedAt: new Date().toISOString(),
+        userId: list.userId, // Add userId to the update
       });
 
       showSuccess(`"${book.title}" added to "${list.name}"!`);

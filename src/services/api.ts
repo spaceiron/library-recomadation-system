@@ -154,13 +154,11 @@ export async function getBook(id: string): Promise<Book | null> {
  * Note: This endpoint requires admin role in Cognito
  */
 export async function createBook(book: Omit<Book, 'id'>): Promise<Book> {
-  // TODO: Remove this mock implementation after deploying Lambda
   if (API_BASE_URL) {
+    const headers = await getAuthHeaders(); // Add authentication headers
     const response = await fetch(`${API_BASE_URL}/books`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(book),
     });
     if (!response.ok) {
