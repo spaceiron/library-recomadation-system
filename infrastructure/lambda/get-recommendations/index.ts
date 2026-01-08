@@ -72,21 +72,37 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const startTime = Date.now();
 
-    const prompt = `You are a librarian AI. Recommend 3 books for: "${userQuery}"
+    // First, get available books from the library
+    const booksResponse = await fetch(`${process.env.API_BASE_URL}/getBooks`);
+    const booksData: any = await booksResponse.json();
+    const availableBooks = booksData.response?.Items || [];
+
+    console.log(`Found ${availableBooks.length} books in library`);
+
+    const booksList = availableBooks
+      .map((book: any) => `"${book.title}" by ${book.author} (${book.genre})`)
+      .join('\n');
+
+    const prompt = `You are a librarian AI. Based on the user query: "${userQuery}"
+
+AVAILABLE BOOKS IN OUR LIBRARY:
+${booksList}
+
+Task: Recommend ONLY books that exist in our library above. If no relevant books exist, return an empty recommendations array.
 
 Format as JSON:
 {
   "recommendations": [
     {
-      "title": "Book Title",
-      "author": "Author Name",
-      "reason": "Brief match reason (max 40 words)",
+      "title": "Exact title from library",
+      "author": "Exact author from library", 
+      "reason": "Why this book matches the query (max 40 words)",
       "confidence": 0.95
     }
   ]
 }
 
-Ensure exactly 3 recommendations with valid JSON.`;
+IMPORTANT: Only recommend books that are actually in our library list above. If no relevant books exist, return {"recommendations": []}.`;
 
     const command = new InvokeModelCommand({
       modelId: 'anthropic.claude-3-haiku-20240307-v1:0', // Claude 3 Haiku for cost optimization
@@ -155,6 +171,19 @@ Ensure exactly 3 recommendations with valid JSON.`;
     // Validate recommendations structure and content
     if (!recommendations.recommendations || !Array.isArray(recommendations.recommendations)) {
       throw new Error('Invalid recommendations format from AI');
+    }
+
+    // Handle empty recommendations (no relevant books found)
+    if (recommendations.recommendations.length === 0) {
+      return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          recommendations: [],
+          message:
+            'No relevant books found in our library for your query. Try a different search term or browse our available books.',
+        }),
+      };
     }
 
     // Validate each recommendation has required fields and proper types
