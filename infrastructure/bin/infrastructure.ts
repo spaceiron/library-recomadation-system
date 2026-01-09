@@ -4,6 +4,7 @@ import { ApiStack } from '../lib/api-stack';
 import { DatabaseStack } from '../lib/database-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { FrontendStack } from '../lib/frontend-stack';
+import { PipelineStack } from '../lib/pipeline-stack';
 
 const app = new cdk.App();
 const env = {
@@ -21,6 +22,14 @@ const apiStack = new ApiStack(app, 'MyLibraryApiStack', {
   readingListsTable: databaseStack.readingListsTable,
   userPool: authStack.userPool,
   frontendUrl: `https://${frontendStack.distributionDomainName}`,
+});
+
+// CI/CD Pipeline Stack
+const pipelineStack = new PipelineStack(app, 'MyLibraryPipelineStack', {
+  env,
+  githubOwner: 'spaceiron', // Your GitHub username
+  githubRepo: 'library-recomadation-system', // Your repo name
+  githubBranch: 'main',
 });
 
 apiStack.addDependency(databaseStack);

@@ -46,10 +46,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const cognitoUser = await getCurrentUser();
 
+      // Kullanıcı attribute'larını çek
+      const session = await fetchAuthSession();
+      const idToken = session.tokens?.idToken;
+
+      // ID token'dan kullanıcı bilgilerini çıkar
+      let userName = cognitoUser.username;
+      let userEmail = cognitoUser.signInDetails?.loginId || '';
+
+      if (idToken) {
+        const payload = idToken.payload;
+        userName =
+          (payload.name as string) || (payload.given_name as string) || cognitoUser.username;
+        userEmail = (payload.email as string) || userEmail;
+      }
+
       setUser({
         id: cognitoUser.userId,
-        email: cognitoUser.signInDetails?.loginId || '',
-        name: cognitoUser.username,
+        email: userEmail,
+        name: userName,
         role: 'admin', // Geçici olarak herkesi admin yap
         createdAt: new Date().toISOString(),
       });

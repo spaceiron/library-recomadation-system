@@ -81,7 +81,7 @@ export function Header() {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
                     {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
                   </div>
-                  <span>{user?.name || user?.email}</span>
+                  <span>{user?.name || user?.email?.split('@')[0] || 'User'}</span>
                   <svg
                     className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -101,7 +101,7 @@ export function Header() {
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
                     <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-900">{user?.name}</p>
+                      <p className="text-sm font-medium text-slate-900">{user?.name || 'User'}</p>
                       <p className="text-sm text-slate-500">{user?.email}</p>
                     </div>
                     <Link
@@ -190,7 +190,7 @@ export function Header() {
                 // Authenticated mobile menu
                 <div className="space-y-2">
                   <div className="text-slate-700 font-medium px-4 py-2">
-                    Welcome, {user?.name || user?.email}
+                    Welcome, {user?.name || user?.email?.split('@')[0] || 'User'}
                   </div>
                   <Button
                     variant="outline"
