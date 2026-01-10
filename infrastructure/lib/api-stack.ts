@@ -708,92 +708,25 @@ export class ApiStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
-      code: lambda.Code.fromInline(`
-        const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
-        
-        const client = new BedrockRuntimeClient({ region: 'us-east-1' });
-        
-        exports.handler = async (event) => {
-          const headers = {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'POST,OPTIONS',
-          };
-          
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 200, headers, body: '' };
-          }
-          
-          try {
-            const body = JSON.parse(event.body || '{}');
-            const query = body.query;
-            
-            if (!query) {
-              return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Query is required' }),
-              };
-            }
-            
-            // For now, return mock recommendations since Bedrock requires additional setup
-            const mockRecommendations = [
-              {
-                title: "The Silent Patient",
-                author: "Alex Michaelides",
-                reason: "A gripping psychological thriller that matches your interest in mystery novels with complex characters and unexpected twists.",
-                confidence: 0.92
-              },
-              {
-                title: "Gone Girl",
-                author: "Gillian Flynn",
-                reason: "A dark psychological thriller with unreliable narrators and a twisted plot that will keep you guessing until the end.",
-                confidence: 0.88
-              },
-              {
-                title: "The Girl with the Dragon Tattoo",
-                author: "Stieg Larsson",
-                reason: "A compelling mystery featuring a strong female protagonist and intricate plot that combines journalism and detective work.",
-                confidence: 0.85
-              }
-            ];
-            
-            // TODO: Replace with actual Bedrock API call
-            // const prompt = \`Based on this request: "\${query}", recommend 3 books with title, author, reason, and confidence score.\`;
-            // const command = new InvokeModelCommand({
-            //   modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
-            //   body: JSON.stringify({
-            //     anthropic_version: 'bedrock-2023-05-31',
-            //     max_tokens: 1000,
-            //     messages: [{ role: 'user', content: prompt }]
-            //   })
-            // });
-            // const response = await client.send(command);
-            
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify({ recommendations: mockRecommendations }),
-            };
-          } catch (error) {
-            console.error('Error getting recommendations:', error);
-            return {
-              statusCode: 500,
-              headers,
-              body: JSON.stringify({ error: 'Failed to get recommendations' }),
-            };
-          }
-        };
-      `),
+      code: lambda.Code.fromAsset('lambda/get-recommendations'),
+      environment: {
+        BOOKS_TABLE_NAME: props.booksTable.tableName, // Direct DynamoDB access
+      },
     });
 
-    // Grant Bedrock permissions (commented out for now)
-    // getRecommendationsFunction.addToRolePolicy(new iam.PolicyStatement({
-    //   effect: iam.Effect.ALLOW,
-    //   actions: ['bedrock:InvokeModel'],
-    //   resources: ['arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0']
-    // }));
+    // Grant DynamoDB read permissions
+    props.booksTable.grantReadData(getRecommendationsFunction);
+
+    // Grant Bedrock permissions
+    getRecommendationsFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['bedrock:InvokeModel'],
+        resources: [
+          'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
+        ],
+      })
+    );
 
     // Create API Gateway resources
     const getBooksResource = this.api.root.addResource('getBooks');

@@ -94,7 +94,12 @@ export async function getBooks(): Promise<Book[]> {
     // Lambda wraps DynamoDB response in a 'response' object
     return data.response.Items || [];
   }
-  throw new Error('API BASE URL IS EMPTY');
+
+  // TODO: Remove this mock implementation after deploying Lambda
+  const { mockBooks } = await import('./mockData');
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(mockBooks), 300);
+  });
 }
 
 /**
@@ -127,7 +132,14 @@ export async function getBook(id: string): Promise<Book | null> {
     return response.json();
   }
 
-  throw new Error('API BASE URL IS NOT CORRECT');
+  // Mock implementation
+  const { mockBooks } = await import('./mockData');
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const book = mockBooks.find((b) => b.id === id) || null;
+      resolve(book);
+    }, 300);
+  });
 }
 
 /**

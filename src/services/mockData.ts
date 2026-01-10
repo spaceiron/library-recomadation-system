@@ -186,6 +186,80 @@ export const mockBooks: Book[] = [
     publishedYear: 2011,
     isbn: '978-0062060624',
   },
+  // Atatürk Kitapları
+  {
+    id: '11',
+    title: 'Atatürk: Bir Milletin Yeniden Doğuşu',
+    author: 'Volkan Konak',
+    genre: 'Biography',
+    description:
+      "Mustafa Kemal Atatürk'ün hayatını ve Türkiye Cumhuriyeti'nin kuruluş sürecini detaylı bir şekilde anlatan kapsamlı bir biyografi.",
+    coverImage: '/book-covers/ataturk-milletin-yeniden-dogusu.jpg',
+    rating: 4.7,
+    publishedYear: 2019,
+    isbn: '978-6052945123',
+  },
+  {
+    id: '12',
+    title: 'Nutuk',
+    author: 'Mustafa Kemal Atatürk',
+    genre: 'History',
+    description:
+      "Atatürk'ün 1927 yılında TBMM'de verdiği tarihi konuşma. Kurtuluş Savaşı ve Cumhuriyet'in kuruluş sürecinin birinci ağızdan anlatımı.",
+    coverImage: '/book-covers/nutuk.jpg',
+    rating: 4.9,
+    publishedYear: 1927,
+    isbn: '978-9751412345',
+  },
+  {
+    id: '13',
+    title: "Atatürk'ün Söylev ve Demeçleri",
+    author: 'Mustafa Kemal Atatürk',
+    genre: 'History',
+    description:
+      "Atatürk'ün çeşitli dönemlerde yaptığı konuşmalar, söylevler ve demeçlerin derlendiği kapsamlı bir koleksiyon.",
+    coverImage: '/book-covers/ataturk-soylev-demecler.jpg',
+    rating: 4.6,
+    publishedYear: 2006,
+    isbn: '978-9754567890',
+  },
+  // Basketbol Kitapları
+  {
+    id: '14',
+    title: "The Last Dance: Michael Jordan'ın Hikayesi",
+    author: 'Roland Lazenby',
+    genre: 'Sports',
+    description:
+      "Basketbol tarihinin en büyük oyuncularından Michael Jordan'ın kariyeri ve Chicago Bulls'un altın çağının detaylı anlatımı.",
+    coverImage: '/book-covers/last-dance-jordan.jpg',
+    rating: 4.8,
+    publishedYear: 2020,
+    isbn: '978-1234567890',
+  },
+  {
+    id: '15',
+    title: 'Basketbol Fundamentalleri',
+    author: 'John Wooden',
+    genre: 'Sports',
+    description:
+      "Efsanevi koç John Wooden'dan basketbolun temel teknikleri, taktikleri ve zihinsel yaklaşımları hakkında kapsamlı bir rehber.",
+    coverImage: '/book-covers/basketbol-fundamentalleri.jpg',
+    rating: 4.5,
+    publishedYear: 2018,
+    isbn: '978-2345678901',
+  },
+  {
+    id: '16',
+    title: 'Kobe Bryant: Mamba Mentality',
+    author: 'Kobe Bryant',
+    genre: 'Sports',
+    description:
+      'Kobe Bryant\'ın basketbol felsefesi, çalışma etiği ve "Mamba Mentality" yaklaşımının detaylı anlatımı.',
+    coverImage: '/book-covers/mamba-mentality.jpg',
+    rating: 4.7,
+    publishedYear: 2018,
+    isbn: '978-3456789012',
+  },
 ];
 
 /**

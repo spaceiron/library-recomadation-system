@@ -1,7 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamoClient = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -72,10 +76,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const startTime = Date.now();
 
-    // First, get available books from the library
-    const booksResponse = await fetch(`${process.env.API_BASE_URL}/getBooks`);
-    const booksData: any = await booksResponse.json();
-    const availableBooks = booksData.response?.Items || [];
+    // Get available books directly from DynamoDB
+    const scanCommand = new ScanCommand({
+      TableName: process.env.BOOKS_TABLE_NAME,
+    });
+
+    const booksResponse = await docClient.send(scanCommand);
+    const availableBooks = booksResponse.Items || [];
 
     console.log(`Found ${availableBooks.length} books in library`);
 
